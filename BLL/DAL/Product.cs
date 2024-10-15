@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BLL.DAL
 {
-    public class Product
+    public class Products
     {
         public  int Id { get; set; }
         public string Name { get; set; }

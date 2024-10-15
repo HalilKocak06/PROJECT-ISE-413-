@@ -15,7 +15,7 @@ namespace BLL.DAL
 
         public string description { get; set; }
 
-        public List<Product[]> Products { get; set; }  //buraya bir daha bak..
+        public List<Products[]> Products { get; set; }  //buraya bir daha bak..
 
     }
 }

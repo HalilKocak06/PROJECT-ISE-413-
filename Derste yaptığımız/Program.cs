@@ -1,7 +1,13 @@
+using BLL.DAL;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<Db>(OptionsBuilderConfigurationExtensions =>
+OptionsBuilderConfigurationExtensions.UseSqlServer(builder.Configuration.GetConnectionString("Db"))); //15 Ekim eklendi // Ne olduðunu bir daha bak.
 
 var app = builder.Build();
 
