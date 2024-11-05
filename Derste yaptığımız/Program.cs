@@ -1,4 +1,5 @@
-using BLL.DAL;
+﻿using BLL.DAL;
+using BLL.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<Db>(OptionsBuilderConfigurationExtensions =>
-OptionsBuilderConfigurationExtensions.UseSqlServer(builder.Configuration.GetConnectionString("Db"))); //15 Ekim eklendi // Ne oldu�unu bir daha bak.
+OptionsBuilderConfigurationExtensions.UseSqlServer(builder.Configuration.GetConnectionString("Db"))); //15 Ekim eklendi // Ne olduðunu bir daha bak.
+
+builder.Services.AddScoped<CategoryService, CategoryService>();   //5 kasım
 
 var app = builder.Build();
 

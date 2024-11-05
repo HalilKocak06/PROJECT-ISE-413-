@@ -12,6 +12,7 @@ namespace BLL.DAL
     {
         
         public int id { get; set; }
+        public object Id { get; internal set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
