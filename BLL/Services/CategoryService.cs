@@ -82,8 +82,10 @@ namespace BLL.Services
 
         public IQueryable<CategoryModel> Query()
         {
-            return _db.Category.Select(c => new CategoryModel()
+
+            return _db.Category.OrderBy(c => c.Name).Select(c => new CategoryModel()  //12 Kasım
                 {
+
                  Record = c
             });
         }

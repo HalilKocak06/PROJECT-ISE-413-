@@ -13,6 +13,7 @@ namespace BLL.Model
     {
         public Category Record { get; set; }
 
+        //{DisplayName("Category Name")} //
         public string Name => Record.Name;
 
         public string Description => Record.Description;

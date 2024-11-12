@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using BLL.Controllers.Bases;
 using BLL.Services;
 using BLL.Models;
+using BLL.Model;
 
 // Generated from Custom Template.
 
@@ -43,6 +44,8 @@ namespace MVC.Controllers
             // Get item service logic:
             var item = _categoryService.Query().SingleOrDefault(q => q.Record.Id == id);
             return View(item);
+
+
         }
 
         protected void SetViewData()
