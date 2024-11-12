@@ -11,8 +11,8 @@ namespace BLL.DAL
     public class Category
     {
         
-        public int id { get; set; }
-        public object Id { get; internal set; }
+        public int Id { get; set; }
+       
         [Required]
         [StringLength(100)]
         public string Name { get; set; }

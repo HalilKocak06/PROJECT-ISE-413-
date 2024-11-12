@@ -16,8 +16,8 @@ namespace BLL.Services
     {
         public IQueryable<CategoryModel> Query();   //5 kasım
 
-        public Service Create(CategoryModel model);
-        public Service Update(CategoryModel model);
+        public Service Create(Category model);
+        public Service Update(Category model);
 
         public Service Delete(int id);
     }
@@ -65,7 +65,7 @@ namespace BLL.Services
 
         public Service Delete(int id)
         {
-            Category category = _db.Category.Include(c => c.Products).SingleOrDefault(c => c.id == id);
+            Category category = _db.Category.Include(c => c.Products).SingleOrDefault(c => c.Id == id);
             if(category == null)
             {
                 return Error("Category is not found.");
