@@ -1,0 +1,670 @@
+ISE413:MANY TO MANY İÇİN
+
+Bootcamp3 başladı:
+
+1)APP SETTİNgs'leri bağlıyorsun ve layout'da düzenliyorsun title'ı ve Model'e Appsettings unutma
+
+2)BookModel'e şöyle bir kod yazıyorsun many to many yapabilmek için . public string Genre => string.Join("<br>", Record.BookGenre?.Select(bg => bg.Genre?.Name + " " )); // + bg.Genre?.Surname, Bende Surname yok hocaya sor.  Ardından , Views --> Books ---> Details'dan şunu uncommnet yap. 
+
+  @* Burada Many to many için yaptık.*@
+  <div class="row mb-3">
+      <div class="col-2 fw-bold">
+          <b>@Html.DisplayNameFor(model => model.Genre)</b>
+      </div>
+      <div class="col-10">
+          @Html.Raw(Model.Genre)
+      </div>
+  </div>
+
+
+Bootcamp3 bitti.
+
+BootCamp4 başladı:
+
+
+3)BookModel'e Service'deki edit için şurayı ekledik .
+
+
+public List<int> GenreIds
+{
+    get => Record.BookGenre?.Select(bg => bg.GenreId).ToList();
+    set => Record.BookGenre = value.Select(v => new BookGenre() { GenreId = v }).ToList();
+}
+
+
+4) Ardından Bu yaptığımız işlemi Book view'de şöyle bir şey yazıyoruz .
+
+
+
+@* Can be uncommented and used for many to many relationships. ManyToManyRecord may be replaced with the related entiy name in the controller and views. *@
+        
+        <div class="row mb-3">
+            <label asp-for="GenreIds" class="col-2 col-form-label fw-bold"></label>
+	        <div class="col-10">
+		        <select multiple asp-for="GenreIds" class="form-select" asp-items="ViewBag.GenreIds"></select>
+		        <span asp-validation-for="GenreIds" class="text-danger"></span>
+	        </div>
+        </div>
+
+
+
+5)GenreModel oluşturduk Model dosyasının içine.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BLL.DAL;
+
+namespace BLL.Models
+{
+    public class GenreModel
+    {
+        public Genre Record { get; set; }
+
+        public string Name => Record.Name;
+
+        //Bende sadece name olduğu için name+surname birleştiremiyorum.
+    }
+}
+
+
+6)Iservice Service, Bases'in içine ekledik.
+
+
+namespace BLL.Services.Bases
+{
+    
+    public interface IService<TEntity, TModel> where TEntity : class, new() where TModel : class, new()
+    {
+        public IQueryable<TModel> Query();
+        public ServiceBase Create(TEntity record);
+        public ServiceBase Update(TEntity record);
+        public ServiceBase Delete(int id);
+    }
+}
+
+
+7)GenreService oluşturduk .
+
+
+using BLL.DAL;
+using BLL.Models;
+using BLL.Services.Bases;
+
+namespace BLL.Services
+{
+    public class GenreService : ServiceBase , IService<Genre, GenreModel>
+    {
+        public GenreService(Db db) : base(db)
+        {
+        }
+
+        public ServiceBase Create(Genre record)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ServiceBase Delete(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQueryable<GenreModel> Query()
+        {
+            return _db.Genres.OrderBy(g => g.Name).Select(g => new GenreModel { Record = g });  //burada mutlaka Record = g yapmamız lazım aksi taktirde GenreModel boş olur.
+        }
+
+        public ServiceBase Update(Genre record)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+}
+
+
+8)Books Controller'a şunlar eklendi many to many için.
+
+ /* Can be uncommented and used for many to many relationships. ManyToManyRecord may be replaced with the related entiy name in the controller and views. */
+ private readonly IService<Genre,GenreModel> _genreService;
+
+/* Can be uncommented and used for many to many relationships. ManyToManyRecord may be replaced with the related entiy name in the controller and views. */
+, IService<Genre, GenreModel> genreService
+
+/* Can be uncommented and used for many to many relationships. ManyToManyRecord may be replaced with the related entiy name in the controller and views. */
+_genreService = genreService;
+
+
+
+9)Books Controller'da şunu ekledik:
+
+protected void SetViewData()
+{
+
+    /* Can be uncommented and used for many to many relationships. ManyToManyRecord may be replaced with the related entiy name in the controller and views. */
+    ViewBag.GenreIds = new MultiSelectList(_genreService.Query().ToList(), "Record.Id", "Name");
+}
+
+
+
+10)Views Books edit.cshtml'de şunu yaptık.
+
+
+ <div class="row mb-3">
+     <label asp-for="GenreIds" class="col-2 col-form-label fw-bold"></label>
+     <div class="col-10">
+	        <select multiple asp-for="GenreIds" class="form-select" asp-items="ViewBag.GenreIds"></select>
+	        <span asp-validation-for="GenreIds" class="text-danger"></span>
+     </div>
+ </div>
+
+
+11)BookModel'da Update kısmında şunları ekledik ve güncelledik
+
+var entity = _db.Books.Include(b => b.BookGenre).SingleOrDefault(b => b.Id == record.Id);
+
+
+_db.BookGenres.RemoveRange(entity.BookGenre);
+
+
+entity.BookGenre = record.BookGenre;
+
+
+
+BOOTCAMP4 Bitti
+
+
+
+
+BOOTCAMP5 Başlıyor : 
+
+
+12)User entity kuruldu.
+
+13)UserModel kurduk.
+
+14)UserService kurduk.
+
+15)Pogram.cs ' de şöyle bir şey yazdık
+
+
+builder.Services.AddScoped<IService<User, UserModel>, UserService>();
+
+
+
+16)view users login.cshtml' oluşturduk.
+
+
+
+@model UserModel
+
+@{
+    ViewBag.Title = "Login";
+}
+
+<h3>@ViewBag.Title</h3>
+<hr />
+
+<form asp-action="Login">
+    @Html.AntiForgeryToken()
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-2">
+                <label asp-for="UserName"></label>
+            </div>
+            <div class="col-4">
+                <input asp-for="Record.UserName" class="form-control" />
+                <span asp-validation-for="Record.UserName" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-2">
+                <label asp-for="Password"></label>
+            </div>
+            <div class="col-4">
+                <input asp-for="Record.Password" class="form-control" type="password" />
+                <span asp-validation-for="Record.Password" class="text-danger"></span>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">Login</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+BOOTCAMP5 BİTTİ.
+
+
+BOOTCAMP6 BAŞLIYOR:
+
+
+
+17)UserController'a şunu ekledik.
+
+public IActionResult Login(UserModel user)
+{
+    if (!ModelState.IsValid) {
+
+        var userModel = _userService.Query().SingleOrDefault(u => u.Record.UserName == user.Record.UserName &&
+            u.Record.Password == user.Record.Password && u.Record.IsActive);
+
+        if (userModel is not null)
+        {
+            List<Claim> claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.Name, userModel.UserName),
+                new Claim(ClaimTypes.Role, userModel.Role),
+                new Claim("Id", userModel.Record.Id.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            HttpContext.SignInAsync(principal, new AuthenticationProperties()
+                {
+                IsPersistent = true 
+            });
+            return RedirectToAction("Index", "Home");
+
+
+        }
+    return View();
+
+
+BOOTCAMP6 BİTTİ
+
+
+BOOTCAMP7 BAŞLIYOR:
+
+18)UserController'ı bitirdik.
+
+19)Program.cs'e şunu yazdık
+
+//Autenhtication:
+
+//Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Users/Login";
+        options.AccessDeniedPath = "/Users/Login";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+        options.SlidingExpiration = true;
+    }
+    );
+
+
+
+//Authentication:
+
+app.UseAuthentication();
+
+
+
+20)Ardından View - Shared -- Layout'un içinde şunu ekledik.
+
+
+ <!-- User: -->
+ <div class="navbar-text">
+     <ul class="navbar-nav me-auto">
+         @if (!User.Identity.IsAuthenticated)
+         {
+             <li class="nav-item">
+                 <a class="nav-link text-dark" asp-controller="Users" asp-action="Login">Login</a>
+             </li>
+         }
+         else
+         {
+             <li class="nav-item pt-2">
+                 <span>@User.Identity.Name</span>
+             </li>
+             <li class="nav-item">
+                 <a class="nav-link text-dark" asp-controller="Users" asp-action="Logout">Logout</a>
+             </li>
+         }
+
+
+21)Index'e şunu ekledik . 
+
+    var userName = User.Identity.IsAuthenticated ? User.Identity.Name : string.Empty;
+
+
+BOOTCAMP7 BİTTİ.
+
+
+
+
+BOOTCAMP8 BAŞLIYOR :
+
+22)AuthorController'a
+
+şunu ekledik :  [Authorize(Roles = "Admin")]
+
+
+Layout'a şunu ekledik.
+
+@if (User.IsInRole("Admin")) //Bu sayede eğer admin'den giriş yapılmaz ise Authors gözükmez.'
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Authors" asp-action="Index">Author</a>
+    </li>
+}
+<li class="nav-item">
+    <a class="nav-link text-dark" asp-area="" asp-controller="Books" asp-action="Index">Books</a>
+</li>
+
+
+23)BooksController'a şunları ekledik çünkü admin yapar bu işlemleri.
+
+[Authorize(Roles ="Admin")]
+
+
+24)Books index'e gereken rolesları felan verdik.
+
+
+BOOTCAMP8 BİTTİ.
+
+
+
+
+
+BOOTCAMP9 BAŞLIYOR:
+
+
+25) Service'in altına HttpService ekledik session managment için.
+
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+
+namespace BLL.Services.Bases
+{
+    public abstract class HttpServiceBase
+    {
+        protected readonly IHttpContextAccessor _httpContextAccessor;
+
+        protected HttpServiceBase(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public virtual T GetSession<T>(string key) where T : class, new()
+        {
+            T instance = null;
+            string json = _httpContextAccessor.HttpContext.Session.GetString(key);
+            if (!string.IsNullOrWhiteSpace(json))
+                instance = JsonConvert.DeserializeObject<T>(json);
+            return instance;
+        }
+
+        public virtual void SetSession<T>(string key, T instance) where T : class, new()
+        {
+            string json = JsonConvert.SerializeObject(instance);
+            _httpContextAccessor.HttpContext.Session.SetString(key, json);
+        }
+
+        public virtual void RemoveSession(string key)
+        {
+            _httpContextAccessor.HttpContext.Session.Remove(key);
+        }
+
+        public virtual void ClearSession()
+        {
+            _httpContextAccessor.HttpContext.Session.Clear();
+        }
+    }
+
+    public class HttpService : HttpServiceBase
+    {
+        public HttpService(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
+        {
+        }
+    }
+}
+
+
+
+25)Program.cs'e şunu ekledik
+
+builder.Services.AddSingleton<HttpServiceBase, HttpService>(); //bu bir singleton'dur ve amacı 1 kez kullanır ardından kapanır. 1 Öğe için.
+
+
+26)Program.cs'e şunu ekledik
+
+
+//Session:
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // default: 20 minutes // 20 dakika sonra session kapanır.
+});
+
+
+26)Program.cs'e şunu ekledik : 
+
+//Session
+
+app.UseSession();
+
+
+27)Service'in aşağısına FavoritesController eklendi.
+
+
+28)Model'in aşağısına FavoritesModel eklendi.
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BLL.Models
+{
+    public class FavoritesModel
+    {
+        public int BookId { get; set; }
+
+        public int UserId { get; set; }
+
+        [DisplayName("Book Name")]
+        public string BookName { get; set; }
+
+
+    }
+}
+
+
+29)Favorites Model'e şunlar eklendi : 
+
+using BLL.Controllers.Bases;
+using BLL.Models;
+using BLL.Services.Bases;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MVC.Controllers
+{
+    [Authorize] 
+    public class FavoritesController : MvcController
+    {
+        const string SESSIONKEY = "Favorites";
+        private readonly HttpServiceBase _httpService;
+
+        public FavoritesController(HttpServiceBase httpService)
+        {
+            _httpService = httpService;
+        }
+        private int GetUserId() => Convert.ToInt32(User.Claims.SingleOrDefault(c => c.Type == "Id").Value);
+
+        private List<FavoritesModel> GetSession()
+        {
+            var favorites = _httpService.GetSession<List<FavoritesModel>>(SESSIONKEY);
+            return favorites?.Where(f => f.UserId == GetUserId()).ToList();
+        }
+        public IActionResult Get()
+        {
+            return View(GetSession());
+        }
+    }
+}
+
+
+30)DAL'ın içine DbFactory'ü yüklüyoruz ve kodu şu şekilde . Bu sayede Scaffholding problemi çözlüyüor.
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+
+namespace BLL.DAL
+{
+    public class DbFactory : IDesignTimeDbContextFactory<Db> //Scaffholidng yapmadığı için bunu kullanıyoruz.
+    {
+        public Db CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<Db>();
+            optionsBuilder.UseSqlServer("server=(localdb)\\mssqllocaldb;database=BookStoreDb;trusted_connection=true;");
+            return new Db(optionsBuilder.Options);
+        }
+    }
+}
+
+
+31)FavoritesController'da Get'in üstüne basım add view diyoruz.
+ismi List
+List
+Book
+Db
+diyip scafholidng yapıyoruz.
+
+
+BOOTCAMP9 Bitti.
+
+
+
+BOOTCAMP10 BAŞLIYOR.
+
+32)View'deki liste şu kodları yazdık.
+
+@model IEnumerable<FavoritesModel>
+
+@* Generated from Custom Template. *@
+@* Model namespace using directive should be added to _ViewImports.cshtml. *@
+
+@{
+    var containerDivClass = "container-fluid";
+}
+@{
+    ViewData["Title"] = "Favorites";
+}
+
+<div class="@containerDivClass">
+    <h3>@ViewData["Title"]</h3>
+    <hr />
+</div>
+
+@if (Model is not null)
+{
+    <form asp-action="List" autocomplete="off">
+        <div class="@containerDivClass">
+            <div class="row">
+                <div class="col-12 text-danger">
+                    @TempData["Message"]
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-10 text-success">
+                    @Model.Count() record(s) found.
+                </div>
+                <div class="col-2 text-end">
+       
+                </div>
+            </div>
+            <table class="table table-striped table-hover">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.BookName)
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+		            @foreach (var item in Model) {
+				        <tr>
+					        <td>
+						        @Html.DisplayFor(modelItem => item.BookName)
+					        </td>
+
+					        <td class="text-end w-25">
+						        <a asp-action="Remove" asp-route-BookId="@item.BookId">Remove from Favorites</a>&nbsp;|&nbsp;
+					        </td>
+				        </tr>
+		            }
+                </tbody>
+            </table>
+        </div>
+    </form>
+}
+
+
+33)FavoritesController'a Remove eklendi.
+
+
+ public IActionResult Remove(int bookId)
+ {
+     var favorites = GetSession(GetUserId());
+     var favoritesItem = favorites.FirstOrDefault(c => c.BookId == bookId);
+     favorites.Remove(favoritesItem);
+     _httpService.SetSession(SESSIONKEY, favorites);
+     return RedirectToAction(nameof(Get));
+ }
+
+
+34) FavoritesController'a ADD eklendi.
+
+// GET: /Favorites/Add?petId=17
+public IActionResult Add(int bookId)
+{
+    int userId = GetUserId();
+    var favorites = GetSession(userId);
+    favorites = favorites ?? new List<FavoritesModel>();
+    if (!favorites.Any(f => f.BookId == bookId))
+    {
+        var book = _bookService.Query().SingleOrDefault(p => p.Record.Id == bookId);
+        var favoritesItem = new FavoritesModel()
+        {
+            BookId = bookId,
+            UserId = userId,
+            BookName = book.Name
+        };
+        favorites.Add(favoritesItem);
+        _httpService.SetSession(SESSIONKEY, favorites);
+        TempData["Message"] = $"\"{book.Name}\" added to favorites.";
+    }
+    return RedirectToAction("Index", "Pets");
+}
+
+
+35)FavoritesController'a eklendi gene : private readonly IService<Book, BookModel> _bookService;
+
+
+36)Layout'a şu eklendi.
+
+
+@if (User.Identity.IsAuthenticated)
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Favorites" asp-action="Get">Favorites</a>
+    </li>
+}
+
+
+
+
+37)Program.cs'de şunu ekledik :
+builder.Services.AddHttpContextAccessor(); // 
+
